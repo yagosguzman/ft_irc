@@ -1,0 +1,137 @@
+
+### Esquema Detallado del Ejercicio del Servidor IRC
+
+---
+
+#### **1. Preparativos y Configuración Inicial**
+1. **Definir los requisitos:**
+   - Definir el puerto en el que el servidor escuchará (e.g., 6667 para IRC estándar).
+   - Decidir si se usará autenticación y comandos específicos para el servidor.
+   - Elegir si el servidor será multi-threading o usará multiplexación (e.g., `poll()`).
+
+2. **Estructurar el proyecto:**
+   - Crear directorios para el código:
+     - `src/` para la lógica del servidor.
+     - `include/` para archivos `.hpp`.
+     - `commands/` para los comandos de IRC.
+   - Diseñar una clase principal para el servidor (`Server`) y otras para las conexiones (`Client`, `Channel`).
+
+3. **Configurar las dependencias del proyecto:**
+   - Configurar un Makefile para compilar con las banderas requeridas:
+     - `-Wall -Wextra -Werror`.
+     - `-std=c++98` si el estándar debe mantenerse simple.
+
+---
+
+#### **2. Configuración del Socket del Servidor**
+1. **Crear el socket del servidor:**
+   - Usar `socket()` con `AF_INET`, `SOCK_STREAM`, y protocolo `0`.
+
+2. **Configurar opciones del socket:**
+   - Llamar a `setsockopt()` con `SO_REUSEADDR` para reutilizar puertos.
+
+3. **Vincular el socket a una dirección y puerto:**
+   - Usar `bind()` para asociar el socket a una dirección IPv4 e IP.
+
+4. **Configurar el socket para escuchar:**
+   - Usar `listen()` con un backlog razonable (e.g., 10 conexiones en cola).
+
+---
+
+#### **3. Inicialización del Bucle Principal**
+1. **Preparar para manejar múltiples conexiones:**
+   - Crear una lista o array dinámico (`std::vector`) para almacenar descriptores de clientes.
+   - Usar `poll()` para monitorear los descriptores del servidor y clientes.
+
+2. **Estructurar el bucle principal:**
+   - Monitorear eventos de conexión y actividad:
+     - Si el descriptor del servidor está listo (`POLLIN`), aceptar nuevas conexiones con `accept()`.
+     - Si un descriptor de cliente está listo, leer datos con `recv()`.
+
+---
+
+#### **4. Manejo de Conexiones de Clientes**
+1. **Aceptar nuevas conexiones:**
+   - Usar `accept()` y agregar el descriptor del nuevo cliente a la lista supervisada por `poll()`.
+
+2. **Registrar la conexión del cliente:**
+   - Crear una instancia de la clase `Client` para cada conexión.
+   - Asociar información como el nickname, hostname y estado.
+
+3. **Enviar mensaje de bienvenida:**
+   - Seguir el protocolo IRC y enviar mensajes como `001` (WELCOME) al cliente tras la conexión inicial.
+
+---
+
+#### **5. Manejo de Comandos IRC**
+1. **Parsear los mensajes recibidos:**
+   - Leer datos con `recv()` y dividirlos en tokens basados en espacios para identificar el comando y sus argumentos.
+
+2. **Implementar comandos esenciales:**
+   - **`NICK`**: Asignar un nombre único al cliente.
+   - **`USER`**: Registrar al usuario con su información.
+   - **`PING` / `PONG`**: Manejar el latido del servidor para comprobar que el cliente sigue activo.
+   - **`PRIVMSG`**: Enviar mensajes privados entre usuarios o canales.
+   - **`JOIN`**: Permitir al cliente unirse a un canal.
+   - **`PART`**: Permitir al cliente salir de un canal.
+   - **`QUIT`**: Manejar la desconexión del cliente.
+
+3. **Validar comandos:**
+   - Asegurarse de que los comandos sigan las reglas del protocolo IRC.
+   - Enviar mensajes de error (e.g., `403 ERR_NOSUCHCHANNEL`) si los comandos no son válidos.
+
+---
+
+#### **6. Gestión de Canales**
+1. **Crear y gestionar canales:**
+   - Implementar una clase `Channel` con:
+     - Nombre del canal.
+     - Lista de usuarios conectados.
+     - Opciones como privacidad o límites de usuarios.
+
+2. **Unirse a un canal:**
+   - Validar si el canal ya existe o crear uno nuevo.
+   - Añadir al cliente a la lista de usuarios del canal.
+
+3. **Salir de un canal:**
+   - Remover al cliente de la lista de usuarios del canal.
+   - Si el canal queda vacío, eliminarlo.
+
+4. **Enviar mensajes al canal:**
+   - Difundir mensajes de un cliente a todos los demás usuarios del canal.
+
+---
+
+#### **7. Monitoreo y Gestión de Errores**
+1. **Detectar desconexiones:**
+   - Supervisar `POLLHUP` en `poll()` para detectar sockets cerrados por el cliente.
+
+2. **Manejar errores:**
+   - Supervisar `POLLERR` en `poll()` y cerrar el socket del cliente si ocurre un error.
+
+3. **Limpiar recursos:**
+   - Usar `close()` para liberar descriptores de sockets.
+   - Remover clientes desconectados de las estructuras internas.
+
+---
+
+#### **8. Desconexión y Finalización**
+1. **Cerrar conexiones activas:**
+   - Enviar un mensaje de desconexión (`ERROR`) a todos los clientes antes de cerrar.
+
+2. **Cerrar el servidor:**
+   - Usar `close()` en el descriptor del servidor.
+   - Liberar memoria y recursos asignados dinámamente.
+
+---
+
+#### **9. Funcionalidades Adicionales**
+1. **Logs y depuración:**
+   - Implementar un sistema de logs para registrar eventos importantes.
+   - Opcionalmente, permitir niveles de logs (info, warning, error).
+
+2. **Soporte para múltiples canales:**
+   - Permitir que los usuarios se unan a varios canales simultáneamente.
+
+3. **Soporte para moderación:**
+   - Añadir comandos como `KICK`, `BAN`, o `MODE` para gestionar permisos en los canales.
