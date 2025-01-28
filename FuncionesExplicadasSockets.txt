@@ -1,0 +1,216 @@
+
+### Funciones explicadas
+
+#### 1. `socket()`
+Crea un socket para comunicarse en la red.
+
+```cpp
+int socket(int domain, int type, int protocol);
+```
+- **domain**: Tipo de protocolo de red:
+  - `AF_INET`: IPv4.
+  - `AF_INET6`: IPv6.
+- **type**: Tipo de socket:
+  - `SOCK_STREAM`: TCP (conexión confiable).
+  - `SOCK_DGRAM`: UDP (rápido, sin conexión).
+- **protocol**: Protocolo específico (usualmente 0 para elegir automáticamente).
+
+---
+
+#### 2. `close()`
+Cierra un socket y libera los recursos asociados.
+
+```cpp
+int close(int fd);
+```
+- **fd**: El descriptor del socket o archivo que quieres cerrar.
+
+---
+
+#### 3. `setsockopt()`
+Configura opciones del socket, como reutilizar direcciones o ajustar tiempos.
+
+```cpp
+int setsockopt(int socket, int level, int option_name, const void *option_value, socklen_t option_len);
+```
+
+Ejemplo: Permitir reutilizar el puerto:
+
+```cpp
+int opt = 1;
+setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+```
+
+---
+
+#### 4. `getsockname()`
+Obtiene la dirección local (IP y puerto) de un socket.
+
+```cpp
+int getsockname(int socket, struct sockaddr *address, socklen_t *address_len);
+```
+- Útil para saber en qué puerto está escuchando el servidor cuando el puerto se asigna automáticamente.
+
+---
+
+#### 5. `getprotobyname()`
+Obtiene información sobre un protocolo usando su nombre.
+
+```cpp
+struct protoent *getprotobyname(const char *name);
+```
+- Por ejemplo, usar "tcp" para obtener información sobre el protocolo TCP.
+
+---
+
+#### 6. `gethostbyname()` (obsoleto, mejor usar `getaddrinfo`)
+Convierte un nombre de host (como `www.google.com`) a una dirección IP.
+
+```cpp
+struct hostent *gethostbyname(const char *name);
+```
+
+---
+
+#### 7. `getaddrinfo()`
+Convierte un nombre de host o servicio en una lista de direcciones IP y puertos.
+
+```cpp
+int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);
+```
+- Más moderno y seguro que `gethostbyname()`.
+
+---
+
+#### 8. `freeaddrinfo()`
+Libera la memoria asignada por `getaddrinfo()`.
+
+```cpp
+void freeaddrinfo(struct addrinfo *res);
+```
+
+---
+
+#### 9. `bind()`
+Asigna una dirección IP y puerto a un socket.
+
+```cpp
+int bind(int socket, const struct sockaddr *address, socklen_t address_len);
+```
+
+---
+
+#### 10. `connect()`
+Conecta un socket cliente a un servidor.
+
+```cpp
+int connect(int socket, const struct sockaddr *address, socklen_t address_len);
+```
+
+---
+
+#### 11. `listen()`
+Configura un socket para que escuche conexiones entrantes.
+
+```cpp
+int listen(int socket, int backlog);
+```
+- **backlog**: Máximo de conexiones en cola.
+
+---
+
+#### 12. `accept()`
+Acepta una conexión entrante en el servidor.
+
+```cpp
+int accept(int socket, struct sockaddr *address, socklen_t *address_len);
+```
+
+---
+
+#### 13. `htons()`, `htonl()`, `ntohs()`, `ntohl()`
+Estas funciones convierten valores entre orden del host y orden de la red:
+- `htons()`: Convierte un entero de 16 bits (puerto) al formato de red.
+- `htonl()`: Convierte un entero de 32 bits (dirección IP) al formato de red.
+- `ntohs()` y `ntohl()`: Hacen lo contrario.
+
+---
+
+#### 14. `inet_addr()` y `inet_ntoa()`
+- `inet_addr()`: Convierte una dirección IP en texto (como "127.0.0.1") a su representación binaria.
+- `inet_ntoa()`: Convierte una dirección IP binaria a texto.
+
+---
+
+#### 15. `send()` y `recv()`
+- **`send()`**: Envía datos a través de un socket.
+
+```cpp
+ssize_t send(int socket, const void *buffer, size_t length, int flags);
+```
+
+- **`recv()`**: Recibe datos de un socket.
+
+```cpp
+ssize_t recv(int socket, void *buffer, size_t length, int flags);
+```
+
+---
+
+#### 16. `signal()` y `sigaction()`
+- **`signal()`**: Configura un manejador para una señal específica.
+- **`sigaction()`**: Más avanzado que `signal()` para manejar señales.
+
+---
+
+#### 17. `lseek()`
+Cambia la posición de lectura/escritura en un archivo (no tan relevante para sockets).
+
+---
+
+#### 18. `fstat()`
+Obtiene información sobre un archivo o descriptor de archivo.
+
+---
+
+#### 19. `fcntl()`
+Configura o consulta opciones de un descriptor (como ponerlo en modo no bloqueante).
+
+```cpp
+fcntl(fd, F_SETFL, O_NONBLOCK);
+```
+
+---
+
+#### 20. `poll()`
+Función clave para manejar múltiples clientes.
+
+**Qué es `poll()`**
+`poll()` permite monitorear múltiples descriptores de archivos (como sockets) para saber si están listos para operaciones como lectura o escritura. Es esencial para manejar múltiples clientes de manera eficiente.
+
+**Sintaxis**
+```cpp
+int poll(struct pollfd *fds, nfds_t nfds, int timeout);
+```
+- **`fds`**: Array de estructuras `pollfd` que representan los descriptores a monitorear.
+- **`nfds`**: Número de elementos en el array `fds`.
+- **`timeout`**: Tiempo de espera en milisegundos:
+  - `0`: No espera (revisión inmediata).
+  - `-1`: Espera indefinidamente.
+
+**Estructura `pollfd`**
+```cpp
+struct pollfd {
+    int fd;       // Descriptor de archivo (socket)
+    short events; // Eventos que queremos monitorear
+    short revents;// Eventos que ocurrieron
+};
+```
+- **`events`**: Qué esperar (por ejemplo, `POLLIN` para lectura).
+- **`revents`**: Qué ocurrió.
+
+**Eventos comunes**
+- `POLLIN`: Listo para lectura.
+- `POLLOUT`: Listo para escritura.
+- `POLLERR`: Error en el socket.
+- `POLLHUP`: Cliente desconectado.
