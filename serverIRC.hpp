@@ -1,4 +1,7 @@
-#include <algorithm>
+#ifndef SERVERIRC_HPP
+# define SERVERIRC_HPP
+
+#include <iostream>
 #include <string>
 #include <vector>
 
@@ -30,4 +33,7 @@ class	serverIRC {
 
 
 
-}
+};
+
+
+#endif
