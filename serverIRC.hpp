@@ -1,5 +1,6 @@
-#include <algortihm>
+#include <algorithm>
 #include <string>
+#include <vector>
 
 class	serverIRC {
 
@@ -10,13 +11,13 @@ class	serverIRC {
 
 	public:
 		serverIRC();
-		serveriRC(int port, std::string pass);
-		~serveriRC();
+		serverIRC(int port, std::string pass);
+		~serverIRC();
 		const int& getPort() const;
-		bool chekPass(std::string inputPass);
+		bool checkPass(std::string inputPass);
 		void start();
 		void close();
-		void addClient();i
+		void addClient();
 		void kick(std::string nClient);
 		void invite(std::string nClient, int channel);
 		void topic(); // Change or view the channel topic

@@ -6,11 +6,12 @@
 /*   By: ysanchez <ysanchez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/28 19:49:44 by ysanchez          #+#    #+#             */
-/*   Updated: 2025/01/28 20:48:05 by ysanchez         ###   ########.fr       */
+/*   Updated: 2025/01/29 16:43:38 by ysanchez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
+#include <stdlib.h>
 
 int main(int argc, char **argv)
 {
