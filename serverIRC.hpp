@@ -4,18 +4,32 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <map>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <poll.h>
 
 class	serverIRC {
 
 	private:
-		std::vector<int> clients;
+		int	serverFd;
+		struct sockaddr_in serverAddr;
+		std::vector<struct pollfd> pollFds;
+		std::map<const int, sockaddr_in> clients;
 		int port;
 		std::string password;
+
+		void setupServerSocket(int port);
+		void acceptNewClient();
+		void handleClientMessages(int client_fd);
 
 	public:
 		serverIRC();
 		serverIRC(int port, std::string pass);
 		~serverIRC();
+
+		void run();
 		const int& getPort() const;
 		bool checkPass(std::string inputPass);
 		void start();
@@ -34,6 +48,5 @@ class	serverIRC {
 
 
 };
-
 
 #endif
