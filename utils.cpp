@@ -6,7 +6,7 @@
 /*   By: ysanchez <ysanchez@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/01/29 18:15:39 by ysanchez          #+#    #+#             */
-/*   Updated: 2025/01/29 19:18:15 by ysanchez         ###   ########.fr       */
+/*   Updated: 2025/02/01 19:59:06 by ysanchez         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@ void check_args(std::string arg, int argnum)
 {
 	if (argnum == 1)
 	{
+		if (arg.empty())
+			throw std::length_error("Error <port> CAN'T be an empty argument");
 		if (arg.size() > 10)
 			throw std::length_error("Error: <port> CAN'T be longer than 10 digits");
 		for (size_t i = 0; i < arg.length(); i++)
