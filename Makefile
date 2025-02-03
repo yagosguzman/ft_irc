@@ -1,8 +1,9 @@
 NAME = ircserv
 
 CC = c++
-CFLAGS = -std=c++98 -Wall -Wextra -Werror -MMD -g -fsanitize=address
-SRC_FILES = main.cpp utils.cpp
+
+CFLAGS = -std=c++98 -Wall -Wextra -Werror -MMD -g -O0  #-fsanitize=address
+SRC_FILES = main.cpp utils.cpp serverIRC.cpp channel.cpp
 OBJ_DIR = objs/
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 OBJS = $(addprefix $(OBJ_DIR), $(OBJ_FILES))

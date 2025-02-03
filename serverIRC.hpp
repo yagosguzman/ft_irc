@@ -9,6 +9,8 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <poll.h>
+#include <sstream>
+#include "channel.hpp"
 
 class	serverIRC {
 
@@ -17,6 +19,7 @@ class	serverIRC {
 		struct sockaddr_in serverAddr;
 		std::vector<struct pollfd> pollFds;
 		std::map<const int, sockaddr_in> clients;
+		std::map<std::string, Channel> channels;
 		int port;
 		std::string password;
 
@@ -30,6 +33,10 @@ class	serverIRC {
 		~serverIRC();
 
 		void run();
+		void joinChannel(int client_fd, const std::string &channel_name, const std::string &nickname);
+		void sendMessageToChannel(int client_fd, const std::string &channel_name, const std::string &message);
+		void handleClientChannelMessages(int client_fd);
+
 		const int& getPort() const;
 		bool checkPass(std::string inputPass);
 		void start();

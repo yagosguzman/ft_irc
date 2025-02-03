@@ -13,34 +13,30 @@
 #include "serverIRC.hpp"
 #include "utils.hpp"
 #include <stdlib.h>
+#include <iostream>
 
-int main(int argc, char **argv)
-{
-	if (argc != 3)
-	{
-		std::cout << "Error: Invalid number of arguments => Use \'./ircserv <port> <password>\'" << std::endl;
-		return 1;
-	}
-	for (int i = 1; i < argc; i++)
-	{
-		try
-		{
-			check_args(argv[i], i);
-		}
-		catch(const std::exception& e)
-		{
-			std::cout << e.what() << std::endl;
-		}	
-	}
-	// try
-	// {
-	// 	serverIRC servertest;
-	// 	servertest.start();
-	// }
-	// catch(const std::exception& e)
-	// {
-	// 	std::cout << e.what() << std::endl;
-	// }
-	
-	return 0;
+int main(int argc, char* argv[]) {
+    try {
+        int port = 6667;  // Puerto predeterminado para IRC
+        std::string password = "";
+
+        // Si hay argumentos en la línea de comandos, los usamos
+        if (argc == 3) {
+            port = std::atoi(argv[1]);
+            password = argv[2];
+        } else if (argc == 2) {
+            port = std::atoi(argv[1]);
+        }
+
+        // Crear instancia del servidor IRC
+        serverIRC server(port, password);
+
+        // Ejecutar el bucle principal del servidor
+        server.run();
+    } catch (const std::exception &e) {
+        std::cerr << "Error fatal: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }

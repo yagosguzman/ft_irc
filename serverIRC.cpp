@@ -10,7 +10,7 @@ serverIRC::serverIRC(int port, std::string pass) {
 };
 serverIRC::~serverIRC() {
 	::close(serverFd);
-	for (std::map<const int, std::string>::iterator it = clients.begin(); it != clients.end(); it++) {
+	for (std::map<const int, sockaddr_in>::iterator it = clients.begin(); it != clients.end(); it++) {
 		::close(it->first);
 	};
 };
@@ -81,19 +81,72 @@ void serverIRC::handleClientMessages(int client_fd) {
 void serverIRC::run() {
     while (true) {
         int poll_count = poll(pollFds.data(), pollFds.size(), -1);
-        if (poll_count == -1) {
-            perror("Error en poll");
-            exit(EXIT_FAILURE);
-        }
+        if (poll_count == -1)
+            throw std::runtime_error("Error en poll");
 
         for (size_t i = 0; i < pollFds.size(); i++) {
             if (pollFds[i].revents & POLLIN) {
                 if (pollFds[i].fd == serverFd) {
                     acceptNewClient();
                 } else {
-                    handleClientMessages(pollFds[i].fd);
+                    handleClientChannelMessages(pollFds[i].fd);
                 }
             }
         }
+    }
+}
+
+void serverIRC::joinChannel(int client_fd, const std::string &channel_name, const std::string &nickname) {
+    if (channels.find(channel_name) == channels.end()) {
+        channels[channel_name] = Channel(channel_name);
+    }
+
+    channels[channel_name].addClient(client_fd, nickname);
+    std::string welcome_msg = "Bienvenido a " + channel_name + "!\n";
+    send(client_fd, welcome_msg.c_str(), welcome_msg.size(), 0);
+}
+
+void serverIRC::sendMessageToChannel(int client_fd, const std::string &channel_name, const std::string &message) {
+    if (channels.find(channel_name) == channels.end()) {
+        std::string error_msg = "El canal " + channel_name + " no existe.\n";
+        send(client_fd, error_msg.c_str(), error_msg.size(), 0);
+        return;
+    }
+
+    channels[channel_name].broadcastMessage(client_fd, message);
+}
+
+
+void serverIRC::handleClientChannelMessages(int client_fd) {
+    char buffer[1024];
+    int bytes_received = recv(client_fd, buffer, sizeof(buffer) - 1, 0);
+    if (bytes_received <= 0) {
+        std::cout << "Cliente " << client_fd << " desconectado." << std::endl;
+        ::close(client_fd);
+        clients.erase(client_fd);
+        return;
+    }
+    buffer[bytes_received] = '\0';
+    std::string input(buffer);
+
+    typedef std::istringstream IssType;
+    IssType iss(input);
+    std::string command;
+    iss >> command;
+    std::cout << command << std::endl;
+    if (command == "JOIN") {
+        std::string channel_name, nickname;
+        iss >> channel_name >> nickname;
+        joinChannel(client_fd, channel_name, nickname);
+    } else if (command == "PRIVMSG") {
+        std::string channel_name;
+        iss >> channel_name;
+        std::string message;
+        getline(iss, message);
+        std::cout << "Mensaje recibido: " << channel_name << "||" << message << std::endl;
+        sendMessageToChannel(client_fd, channel_name, message);
+    } else {
+        std::string error_msg = "Comando no reconocido.\n";
+        send(client_fd, error_msg.c_str(), error_msg.size(), 0);
     }
 }
