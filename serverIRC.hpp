@@ -13,12 +13,12 @@
 class	serverIRC {
 
 	private:
-		int	serverFd;
-		struct sockaddr_in serverAddr;
-		std::vector<struct pollfd> pollFds;
-		std::map<const int, sockaddr_in> clients;
-		int port;
-		std::string password;
+		int	_serverFd;
+		struct sockaddr_in _serverAddr;
+		std::vector<struct pollfd> _pollFds;
+		std::map<const int, sockaddr_in> _clients;
+		int _port;
+		std::string _password;
 
 		void setupServerSocket(int port);
 		void acceptNewClient();
