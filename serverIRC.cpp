@@ -112,7 +112,6 @@ void serverIRC::sendMessageToChannel(int client_fd, const std::string &channel_n
         send(client_fd, error_msg.c_str(), error_msg.size(), 0);
         return;
     }
-
     channels[channel_name].broadcastMessage(client_fd, message);
 }
 
