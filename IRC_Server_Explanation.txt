@@ -1,6 +1,8 @@
 
 ### Esquema Detallado del Ejercicio del Servidor IRC
 
+https://chi.cs.uchicago.edu/chirc/irc_examples.html
+
 ---
 
 #### **1. Preparativos y Configuración Inicial**

@@ -15,6 +15,7 @@
 class	serverIRC {
 
 	private:
+		std::string _serverName;
 		int	serverFd;
 		struct sockaddr_in serverAddr;
 		std::vector<struct pollfd> pollFds;
@@ -36,6 +37,7 @@ class	serverIRC {
 		void joinChannel(int client_fd, const std::string &channel_name, const std::string &nickname);
 		void sendMessageToChannel(int client_fd, const std::string &channel_name, const std::string &message);
 		void handleClientChannelMessages(int client_fd);
+		const std::string &getServerName() const;
 
 		const int& getPort() const;
 		bool checkPass(std::string inputPass);

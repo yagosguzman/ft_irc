@@ -15,7 +15,12 @@ serverIRC::~serverIRC() {
 	};
 };
 
+const std::string& serverIRC::getServerName() const {
+    return _serverName;
+};
+
 void serverIRC::setupServerSocket(int port) {
+    _serverName = "barcelona";
     serverFd = socket(AF_INET, SOCK_STREAM, 0);
     if (serverFd == -1) 
         throw std::runtime_error("Error: failing making server socket");
@@ -102,7 +107,7 @@ void serverIRC::joinChannel(int client_fd, const std::string &channel_name, cons
     }
 
     channels[channel_name].addClient(client_fd, nickname);
-    std::string welcome_msg = "Bienvenido a " + channel_name + "!\n";
+    std::string welcome_msg = ":" + channel_name + " PRIVMSG " + nickname + " :" + "Bienvenido a " + channel_name + "\r\n";
     send(client_fd, welcome_msg.c_str(), welcome_msg.size(), 0);
 }
 
@@ -112,7 +117,7 @@ void serverIRC::sendMessageToChannel(int client_fd, const std::string &channel_n
         send(client_fd, error_msg.c_str(), error_msg.size(), 0);
         return;
     }
-    channels[channel_name].broadcastMessage(client_fd, message);
+    channels[channel_name].broadcastMessage(client_fd, message, getServerName());
 }
 
 
@@ -142,7 +147,6 @@ void serverIRC::handleClientChannelMessages(int client_fd) {
         iss >> channel_name;
         std::string message;
         getline(iss, message);
-        std::cout << "Mensaje recibido: " << channel_name << "||" << message << std::endl;
         sendMessageToChannel(client_fd, channel_name, message);
     } else {
         std::string error_msg = "Comando no reconocido.\n";

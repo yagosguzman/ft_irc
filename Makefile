@@ -2,7 +2,7 @@ NAME = ircserv
 
 CC = c++
 
-CFLAGS = -std=c++98 -Wall -Wextra -Werror -MMD -g -O0  #-fsanitize=address
+CFLAGS = -std=c++98 -MMD -g -O0  #-fsanitize=address
 SRC_FILES = main.cpp utils.cpp serverIRC.cpp channel.cpp
 OBJ_DIR = objs/
 OBJ_FILES = $(SRC_FILES:.cpp=.o)

@@ -20,6 +20,6 @@ public:
 
     void addClient(int client_fd, const std::string &nickname);
     void removeClient(int client_fd);
-    void broadcastMessage(int sender_fd, const std::string &message);
+    void broadcastMessage(int sender_fd, const std::string &message, const std::string &serverName);
     bool isEmpty() const;
 };
