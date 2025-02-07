@@ -20,7 +20,6 @@ const std::string& serverIRC::getServerName() const {
 };
 
 void serverIRC::setupServerSocket(int port) {
-    _serverName = "barcelona";
     serverFd = socket(AF_INET, SOCK_STREAM, 0);
     if (serverFd == -1) 
         throw std::runtime_error("Error: failing making server socket");
@@ -106,10 +105,36 @@ void serverIRC::joinChannel(int client_fd, const std::string &channel_name, cons
         channels[channel_name] = Channel(channel_name);
     }
 
-    channels[channel_name].addClient(client_fd, nickname);
-    std::string welcome_msg = ":" + channel_name + " PRIVMSG " + nickname + " :" + "Bienvenido a " + channel_name + "\r\n";
-    send(client_fd, welcome_msg.c_str(), welcome_msg.size(), 0);
+    Channel &channel = channels[channel_name];
+    channel.addClient(client_fd, nickname, nickname);
+
+    // Notificar a todos que el usuario se unió al canal
+    std::string join_msg = ":" + nickname + " JOIN " + channel_name + "\r\n";
+    std::map<int, std::string> clients = channel.getClients();
+    
+    for (std::map<int, std::string>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        send(it->first, join_msg.c_str(), join_msg.size(), 0);
+    }
+
+    // Enviar la lista de usuarios del canal al nuevo usuario
+    std::string name_reply = ":miServidor 353 " + nickname + " = " + channel_name + " :";
+    for (std::map<int, std::string>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        name_reply += it->second + " ";
+    }
+    name_reply += "\r\n";
+    send(client_fd, name_reply.c_str(), name_reply.size(), 0);
+
+    // Indicar el final de la lista de nombres
+    std::string end_of_names = ":miServidor 366 " + nickname + " " + channel_name + " :End of /NAMES list.\r\n";
+    send(client_fd, end_of_names.c_str(), end_of_names.size(), 0);
+
+    // Enviar mensaje de bienvenida al canal
+    std::string welcome_msg = ":miServidor PRIVMSG " + channel_name + " :¡Bienvenido al canal " + channel_name + ", " + nickname + "! Respeta las reglas y pásalo bien.\r\n";
+    for (std::map<int, std::string>::iterator it = clients.begin(); it != clients.end(); ++it) {
+        send(it->first, welcome_msg.c_str(), welcome_msg.size(), 0);
+    }
 }
+
 
 void serverIRC::sendMessageToChannel(int client_fd, const std::string &channel_name, const std::string &message) {
     if (channels.find(channel_name) == channels.end()) {
