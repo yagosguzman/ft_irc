@@ -1,42 +1,66 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: ysanchez <ysanchez@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/01/28 19:49:44 by ysanchez          #+#    #+#             */
-/*   Updated: 2025/01/29 19:17:36 by ysanchez         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
-#include "serverIRC.hpp"
-#include "utils.hpp"
-#include <stdlib.h>
 #include <iostream>
+#include <cstdlib>
+#include <csignal>
+#include "Server.hpp"
+#include "Command.hpp"
+
+// Global variable for signal handling
+Server* g_server = NULL;
+
+// Signal handler function
+void signalHandler(int signum) {
+    if (signum == SIGINT || signum == SIGTERM) {
+        std::cout << "\nShutting down IRC server..." << std::endl;
+        delete g_server;
+        exit(0);
+    }
+}
+
+// Function to validate port number
+bool isValidPort(const std::string& port) {
+    for (size_t i = 0; i < port.length(); i++) {
+        if (!isdigit(port[i]))
+            return false;
+    }
+    int portNum = std::atoi(port.c_str());
+    return (portNum > 0 && portNum < 65536);
+}
 
 int main(int argc, char* argv[]) {
-    try {
-        int port = 6667;  // Puerto predeterminado para IRC
-        std::string password = "";
-
-        // Si hay argumentos en la línea de comandos, los usamos
-        if (argc == 3) {
-            port = std::atoi(argv[1]);
-            password = argv[2];
-        } else if (argc == 2) {
-            port = std::atoi(argv[1]);
-        }
-
-        // Crear instancia del servidor IRC
-        serverIRC server(port, password);
-
-        // Ejecutar el bucle principal del servidor
-        server.run();
-    } catch (const std::exception &e) {
-        std::cerr << "Error fatal: " << e.what() << std::endl;
-        return EXIT_FAILURE;
+    // Check command-line arguments
+    if (argc != 3) {
+        std::cerr << "Usage: " << argv[0] << " <port> <password>" << std::endl;
+        return 1;
     }
-
-    return EXIT_SUCCESS;
+    
+    // Validate port number
+    if (!isValidPort(argv[1])) {
+        std::cerr << "Error: Invalid port number" << std::endl;
+        return 1;
+    }
+    
+    int port = std::atoi(argv[1]);
+    std::string password = argv[2];
+    
+    // Setup signal handlers
+    signal(SIGINT, signalHandler);
+    signal(SIGTERM, signalHandler);
+    
+    try {
+        // Initialize command handlers
+        Command::initialize();
+        
+        // Create and run server
+        g_server = new Server(port, password);
+        g_server->run();
+        
+        // Cleanup
+        delete g_server;
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        delete g_server;
+        return 1;
+    }
+    
+    return 0;
 }
