@@ -30,8 +30,6 @@ private:
     static void handleTopic(Server* server, Client* client, const std::vector<std::string>& params);
     static void handleMode(Server* server, Client* client, const std::vector<std::string>& params);
     static void handlePart(Server* server, Client* client, const std::vector<std::string>& params);
-    static void handlePing(Server* server, Client* client, const std::vector<std::string>& params);
-    static void handlePong(Server* server, Client* client, const std::vector<std::string>& params);
     static void handleList(Server* server, Client* client, const std::vector<std::string>& params);
     static void handleNames(Server* server, Client* client, const std::vector<std::string>& params);
     

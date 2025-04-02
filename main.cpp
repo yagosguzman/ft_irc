@@ -7,6 +7,8 @@
 // Global variable for signal handling
 Server* g_server = NULL;
 
+
+
 // Signal handler function
 void signalHandler(int signum) {
     if (signum == SIGINT || signum == SIGTERM) {
