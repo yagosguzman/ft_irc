@@ -292,8 +292,6 @@ void Command::handleQuit(Server* server, Client* client, const std::vector<std::
         std::string quitNotification = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + " QUIT :" + quitMessage;
         channel->broadcastMessage(quitNotification, client);
     }
-    
-    // Server will handle removing the client
 }
 
 void Command::handleKick(Server* server, Client* client, const std::vector<std::string>& params) {
@@ -594,7 +592,9 @@ void Command::handleMode(Server* server, Client* client, const std::vector<std::
                     std::string targetNick = params[paramIndex];
                     Client* targetClient = server->getClientByNickname(targetNick);
                     
-                    if (targetClient != NULL && channel->isClientInChannel(targetClient)) {
+                    if ((targetClient != NULL && channel->isClientInChannel(targetClient)) &&(
+                            (adding && !channel->isOperator(targetClient)) || 
+                            (!adding && channel->isOperator(targetClient)))) {
                         if (adding) {
                             channel->addOperator(targetClient);
                         } else {
@@ -606,7 +606,13 @@ void Command::handleMode(Server* server, Client* client, const std::vector<std::
                                            " MODE " + target + " " + (adding ? "+" : "-") + "o " + targetNick;
                         channel->broadcastMessage(modeMsg, NULL);
                     } else {
-                        client->sendMessage("441 " + client->getNickname() + " " + targetNick + " " + target + " :They aren't on that channel");
+                        if ((targetClient != NULL && channel->isClientInChannel(targetClient)) && adding) {
+                            client->sendMessage("441 " + client->getNickname() + " " + targetNick + " " + target + " :is already an operator");
+                        } else if ((targetClient != NULL && channel->isClientInChannel(targetClient)) && !adding) {
+                            client->sendMessage("441 " + client->getNickname() + " " + targetNick + " " + target + " :is not an operator");
+                        } else {
+                            client->sendMessage("441 " + client->getNickname() + " " + targetNick + " " + target + " :They aren't on that channel");
+                        }
                     }
                     
                     paramIndex++;
@@ -666,6 +672,13 @@ void Command::handlePart(Server* server, Client* client, const std::vector<std::
         
         // Remove client from channel
         channel->removeClient(client);
+        if (!channel->getClients().empty() && channel->getOperators().empty()) {
+            Client*  newOperator = *channel->getClients().begin();
+            channel->addOperator(newOperator);
+            std::string newOpMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@" + client->getHostname() + 
+                                           " MODE " + newOperator->getNickname() + " +o";
+        channel->broadcastMessage(newOpMsg , NULL);
+        }
         
         // If channel is empty, remove it
         if (channel->getClients().empty()) {
