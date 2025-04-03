@@ -29,7 +29,7 @@ void Command::execute(Server* server, Client* client, const std::string& command
     if (it != _commandHandlers.end()) {
         std::vector<std::string> paramList = splitParams(params);
         it->second(server, client, paramList);
-    } else {
+    } else if (!command.compare("WHO") && !command.compare("CAP")) {
         std::cerr << "Unknown command: " << command << std::endl;
     }
 }
@@ -340,6 +340,12 @@ void Command::handleKick(Server* server, Client* client, const std::vector<std::
     // Check if target is in the channel
     if (!channel->isClientInChannel(targetClient)) {
         client->sendMessage("441 " + client->getNickname() + " " + targetNick + " " + channelName + " :They aren't on that channel");
+        return;
+    }
+
+    // Check if target is the Client
+    if (!client->getNickname().compare(targetNick)) {
+        client->sendMessage("499 " + client->getNickname() + " " + channelName + " :You can't kick yourself");
         return;
     }
     

@@ -132,6 +132,7 @@ void Server::acceptNewConnection() {
     pollfd pfd;
     pfd.fd = clientFd;
     pfd.events = POLLIN;
+    pfd.revents = 0;
     _pollfds.push_back(pfd);
     
     // Create and store the client
