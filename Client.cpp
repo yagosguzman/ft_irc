@@ -119,7 +119,7 @@ void Client::sendMessage(const std::string& message) const {
         
         ssize_t bytesSent = send(_fd, fullMessage.c_str(), fullMessage.length(), 0);
         if (bytesSent == -1) {
-            std::cerr << "Error sending message to client (fd: " << _fd << "): " << strerror(errno) << std::endl;
+            std::cout << "Error sending message to client (fd: " << _fd << "): " << strerror(errno) << std::endl;
         }
     }
 }

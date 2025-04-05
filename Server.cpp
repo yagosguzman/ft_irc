@@ -3,14 +3,13 @@
 #include <sstream>
 #include <algorithm>
 
-Server::Server(int port, const std::string& password)
-    : _port(port), _password(password), _serverSocket(-1) {
+Server::Server(int port, const std::string& password) : _port(port), _password(password), _serverSocket(-1) {
     setupServerSocket();
     std::cout << "IRC Server initialized on port " << _port << std::endl;
 }
 
 Server::~Server() {
-    // Close all client connections
+    // Close all client connections (fd) and delete all clients created with new
     for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
         close(it->first);
         delete it->second;
@@ -115,7 +114,7 @@ void Server::acceptNewConnection() {
     int clientFd = accept(_serverSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
     if (clientFd == -1) {
         if (errno != EAGAIN && errno != EWOULDBLOCK) {
-            std::cerr << "Failed to accept connection: " << strerror(errno) << std::endl;
+            std::cout << "Failed to accept connection: " << strerror(errno) << std::endl;
         }
         return;
     }
@@ -124,7 +123,7 @@ void Server::acceptNewConnection() {
     int flags = fcntl(clientFd, F_GETFL, 0);
     if (flags == -1 || fcntl(clientFd, F_SETFL, flags | O_NONBLOCK) == -1) {
         close(clientFd);
-        std::cerr << "Failed to set client socket to non-blocking mode: " << strerror(errno) << std::endl;
+        std::cout << "Failed to set client socket to non-blocking mode: " << strerror(errno) << std::endl;
         return;
     }
     

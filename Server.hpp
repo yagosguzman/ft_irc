@@ -61,4 +61,4 @@ public:
     void processCommand(int clientFd, const std::string& message);
 };
 
-#endif /* SERVER_HPP */
+#endif

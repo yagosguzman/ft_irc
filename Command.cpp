@@ -30,7 +30,7 @@ void Command::execute(Server* server, Client* client, const std::string& command
         std::vector<std::string> paramList = splitParams(params);
         it->second(server, client, paramList);
     } else if (!command.compare("WHO") && !command.compare("CAP")) {
-        std::cerr << "Unknown command: " << command << std::endl;
+        std::cout << "Unknown command: " << command << std::endl;
     }
 }
 

@@ -14,10 +14,6 @@ Channel::Channel(const std::string& name, Client* creator)
 }
 
 Channel::~Channel() {
-    // Remove this channel from all clients
-    // for (std::set<Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it) {
-    //     (*it)->leaveChannel(this);
-    // }
 }
 
 const std::string& Channel::getName() const {
